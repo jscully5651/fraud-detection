@@ -44,9 +44,9 @@ def summarize_results(scored: pd.DataFrame, chargebacks: pd.DataFrame) -> pd.Dat
     """Aggregate scored transactions by risk label and join in confirmed chargeback counts.
 
     Returns:
-        One row per risk label with columns:
+        One row per risk label ordered high → medium → low, with columns:
             risk_label, transactions, total_amount_usd, avg_amount_usd,
-            chargebacks, chargeback_rate.
+            chargebacks, chargeback_rate (expressed as a percentage 0–100).
     """
     summary = (
         scored.groupby("risk_label", as_index=False)
@@ -55,11 +55,15 @@ def summarize_results(scored: pd.DataFrame, chargebacks: pd.DataFrame) -> pd.Dat
             total_amount_usd=("amount_usd", "sum"),
             avg_amount_usd=("amount_usd", "mean"),
         )
-        .sort_values("risk_label")
+        .sort_values(
+            "risk_label",
+            key=lambda col: col.map({"high": 0, "medium": 1, "low": 2}),
+        )
     )
 
     known_fraud = scored.merge(chargebacks[["transaction_id"]], on="transaction_id", how="left", indicator=True)
     known_fraud["is_chargeback"] = (known_fraud["_merge"] == "both").astype(int)
+    known_fraud = known_fraud.drop(columns="_merge")
 
     fraud_by_label = (
         known_fraud.groupby("risk_label", as_index=False)
@@ -69,7 +73,7 @@ def summarize_results(scored: pd.DataFrame, chargebacks: pd.DataFrame) -> pd.Dat
     )
 
     summary = summary.merge(fraud_by_label, on="risk_label", how="left")
-    summary["chargeback_rate"] = summary["chargebacks"] / summary["transactions"]
+    summary["chargeback_rate"] = (summary["chargebacks"] / summary["transactions"] * 100).round(1)
     return summary
 
 

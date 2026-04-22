@@ -136,6 +136,25 @@ The repository had no `.gitignore`, causing Python bytecode cache directories (`
 
 ---
 
+### 5. Code quality improvements (committed: pending push)
+
+**What changed:** Eight issues identified in a second code review pass were addressed across all source files and the test suite.
+
+| # | File | Issue | Fix |
+|---|------|-------|-----|
+| 1 | `analyze_fraud.py` | Risk summary sorted alphabetically (high→low→medium) | Sorted by severity (high→medium→low) using a key map |
+| 2 | `analyze_fraud.py` | `_merge` indicator column not dropped after use | Dropped immediately after `is_chargeback` is derived |
+| 3 | `analyze_fraud.py` | `chargeback_rate` displayed as raw float (e.g. 0.444) | Now expressed as a percentage rounded to 1 decimal (e.g. 44.4) |
+| 4 | `features.py` | `is_large_amount` derived column never used by scorer | Removed |
+| 5 | `features.py` | `login_pressure` derived column never used; thresholds misaligned with scorer | Removed |
+| 6 | `tests/` | Bare `pytest` failed with `ModuleNotFoundError` — no `PYTHONPATH` set | Added `conftest.py` at project root to insert `src/` into `sys.path` automatically |
+| 7 | `test_risk_rules.py` | `test_large_amount_adds_risk` made redundant by more precise `test_large_amount` | Removed |
+| 8 | `risk_rules.py` | Two inline comments redundant with function docstring | Removed |
+
+**Why:** Items 1–3 affect how business users read the output. Items 4–5 remove dead code that could mislead future analysts. Item 6 ensures the test suite runs correctly without manual environment setup. Items 7–8 are housekeeping to keep tests and code clean.
+
+---
+
 ## Pending work
 
 None. All identified issues have been resolved.

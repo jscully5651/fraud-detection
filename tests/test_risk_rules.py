@@ -45,18 +45,6 @@ def test_label_risk_boundaries():
 # Amount
 # ---------------------------------------------------------------------------
 
-def test_large_amount_adds_risk():
-    tx = {
-        "device_risk_score": 10,
-        "is_international": 0,
-        "amount_usd": 1200,
-        "velocity_24h": 1,
-        "failed_logins_24h": 0,
-        "prior_chargebacks": 0,
-    }
-    assert score_transaction(tx) >= 25
-
-
 def test_large_amount():
     assert score_transaction(_tx(amount_usd=1000)) == 25
     assert score_transaction(_tx(amount_usd=2500)) == 25

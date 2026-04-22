@@ -12,22 +12,10 @@ def build_model_frame(transactions: pd.DataFrame, accounts: pd.DataFrame) -> pd.
         accounts:     Account metadata keyed on account_id.
 
     Returns:
-        Merged DataFrame containing all transaction and account columns, plus:
-            is_large_amount  (int 0|1)   1 if amount_usd >= 1000.
-            login_pressure   (category)  "none" / "low" / "high" bucketing of
-                                         failed_logins_24h (0 / 1–2 / 3+).
-
-    Note:
+        Merged DataFrame containing all transaction and account columns.
         Account-level fields such as prior_chargebacks are joined in here and
         are therefore available when score_transaction() receives row.to_dict().
     """
     df = transactions.merge(accounts, on="account_id", how="left")
-
-    df["is_large_amount"] = (df["amount_usd"] >= 1000).astype(int)
-    df["login_pressure"] = pd.cut(
-        df["failed_logins_24h"],
-        bins=[-1, 0, 2, 100],
-        labels=["none", "low", "high"]
-    )
 
     return df

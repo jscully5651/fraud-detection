@@ -42,7 +42,6 @@ def score_transaction(tx: Dict) -> int:
     if tx["is_international"] == 1:
         score += 15
 
-    # High purchase amounts should matter.
     if tx["amount_usd"] >= 1000:
         score += 25
     elif tx["amount_usd"] >= 500:
@@ -53,7 +52,6 @@ def score_transaction(tx: Dict) -> int:
     elif tx["velocity_24h"] >= 3:
         score += 5
 
-    # Prior login failures can signal account takeover.
     if tx["failed_logins_24h"] >= 5:
         score += 20
     elif tx["failed_logins_24h"] >= 2:
