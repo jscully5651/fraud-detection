@@ -1,0 +1,48 @@
+Testing Changes:
+Here's a full walkthrough of every test in the updated file:
+
+---
+
+### Helpers
+
+**`BASE_TX`** — a transaction with all signals at their lowest/neutral values (device risk 10, domestic, $100, velocity 1, no failed logins, no prior chargebacks). This produces a score of exactly 0 and serves as the baseline for all signal tests.
+
+**`_tx(**overrides)`** — a one-liner that copies `BASE_TX` and swaps in only the field being tested, so each test isolates exactly one variable.
+
+---
+
+### Existing tests (kept)
+
+**`test_label_risk_thresholds`** — confirms the three label bands: score 10 → "low", 35 → "medium", 75 → "high".
+
+**`test_large_amount_adds_risk`** — confirms a $1,200 transaction scores at least 25 points.
+
+---
+
+### New tests
+
+**`test_medium_amount_adds_risk`** — confirms a $750 transaction (the $500–999 tier) scores at least 10 points.
+
+**`test_high_device_risk_adds_risk`** — sets device risk to 75 (≥70 tier) and confirms it adds exactly 25 points above baseline.
+
+**`test_medium_device_risk_adds_risk`** — sets device risk to 55 (40–69 tier) and confirms it adds exactly 10 points above baseline.
+
+**`test_international_adds_risk`** — sets `is_international=1` and confirms it adds exactly 15 points above baseline.
+
+**`test_high_velocity_adds_risk`** — sets velocity to 8 (≥6 tier) and confirms it adds exactly 20 points above baseline.
+
+**`test_medium_velocity_adds_risk`** — sets velocity to 4 (3–5 tier) and confirms it adds exactly 5 points above baseline.
+
+**`test_two_or_more_prior_chargebacks_adds_risk`** — sets `prior_chargebacks=2` and confirms it adds exactly 20 points above baseline.
+
+**`test_one_prior_chargeback_adds_risk`** — sets `prior_chargebacks=1` and confirms it adds exactly 5 points above baseline.
+
+**`test_score_does_not_exceed_100`** — builds the worst-case transaction (every signal at maximum) and confirms the score is capped at exactly 100.
+
+**`test_score_does_not_go_below_zero`** — confirms the neutral baseline scores exactly 0, verifying the floor clamp works.
+
+---
+
+The "exactly N points above baseline" approach (rather than "at least N") means any future accidental change to a signal's weight will cause the relevant test to fail immediately, rather than silently pass because the score is still above some loose threshold.
+
+Shall I go ahead and commit and push?
