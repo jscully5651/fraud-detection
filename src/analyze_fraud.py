@@ -1,3 +1,4 @@
+"""Main analysis pipeline: load data, score every transaction, and print a risk summary."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -12,6 +13,11 @@ DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 
 
 def load_inputs() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """Load accounts, transactions, and chargebacks CSVs from the data directory.
+
+    Returns:
+        (accounts, transactions, chargebacks) as DataFrames.
+    """
     accounts = pd.read_csv(DATA_DIR / "accounts.csv")
     transactions = pd.read_csv(DATA_DIR / "transactions.csv")
     chargebacks = pd.read_csv(DATA_DIR / "chargebacks.csv")
@@ -19,6 +25,13 @@ def load_inputs() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
 
 
 def score_transactions(transactions: pd.DataFrame, accounts: pd.DataFrame) -> pd.DataFrame:
+    """Build the model feature frame and apply scoring to every transaction row.
+
+    Returns:
+        The merged feature frame with two additional columns:
+            risk_score  (int 0–100)  Raw numeric score from score_transaction().
+            risk_label  (str)        "low" / "medium" / "high" from label_risk().
+    """
     model_frame = build_model_frame(transactions, accounts)
     model_frame["risk_score"] = model_frame.apply(
         lambda row: score_transaction(row.to_dict()), axis=1
@@ -28,6 +41,13 @@ def score_transactions(transactions: pd.DataFrame, accounts: pd.DataFrame) -> pd
 
 
 def summarize_results(scored: pd.DataFrame, chargebacks: pd.DataFrame) -> pd.DataFrame:
+    """Aggregate scored transactions by risk label and join in confirmed chargeback counts.
+
+    Returns:
+        One row per risk label with columns:
+            risk_label, transactions, total_amount_usd, avg_amount_usd,
+            chargebacks, chargeback_rate.
+    """
     summary = (
         scored.groupby("risk_label", as_index=False)
         .agg(
@@ -54,6 +74,7 @@ def summarize_results(scored: pd.DataFrame, chargebacks: pd.DataFrame) -> pd.Dat
 
 
 def main() -> None:
+    """Run the full pipeline and print the top-10 risk table and risk band summary."""
     accounts, transactions, chargebacks = load_inputs()
     scored = score_transactions(transactions, accounts)
 
