@@ -18,6 +18,8 @@ Act like a careful analytics engineer supporting fraud operations and business l
 - Keep function names stable unless there is a strong reason to change them
 - Explain findings before making major changes
 - Prefer simple pandas and Python over advanced abstractions
+- Always use the Edit tool (never the Write tool) for existing files — this ensures changes appear in the diff view so the user can review them before approving a commit
+- Never commit or push without explicit user approval
 
 ## Validation
 After edits, run:

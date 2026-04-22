@@ -114,8 +114,28 @@ The repository had no `.gitignore`, causing Python bytecode cache directories (`
 
 ---
 
+### 4. Expanded test suite (committed: pending push)
+
+**What changed:** Rewrote `tests/test_risk_rules.py`, growing it from 2 tests to 23. A `BASE_TX` constant defines a neutral transaction that scores exactly zero, and a `_tx(**overrides)` helper allows each test to isolate a single signal cleanly.
+
+**Coverage added:**
+
+| Group | Tests |
+|-------|-------|
+| Baseline | Confirms all-neutral transaction scores 0 |
+| Label thresholds | Mid-range and exact boundary values for low/medium/high |
+| Amount | Large (≥$1,000), medium ($500–$999), and below-threshold |
+| Device risk | High (≥70), medium (40–69), and below-threshold |
+| International | Flag set and unset |
+| Velocity | High (≥6), medium (3–5), and below-threshold |
+| Login failures | High (≥5), medium (2–4), and below-threshold |
+| Prior chargebacks | Multiple (≥2), single, and none |
+| Score bounds | Clamped at 100 when signals sum above it; never negative |
+
+**Why:** The original 2 tests covered only label thresholds and a loose check on large amounts. None of the four previously-bugged signals had a test, which is why those bugs went undetected. The new suite will catch any future sign reversal or weight change immediately.
+
+---
+
 ## Pending work
 
-| Task | Description |
-|------|-------------|
-| Expand test suite | Add tests for all scoring branches in `tests/test_risk_rules.py` to prevent regressions |
+None. All identified issues have been resolved.
